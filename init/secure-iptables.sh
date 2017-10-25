@@ -35,7 +35,7 @@ echo "Writing rules for iptables in $IPTABLES_FILE..."
 
 echo "Checking if iptables installed..."
 
-iptables --Version
+iptables --version
 if [ $? -eq 0 ]
 	then
 	echo "Iptables installed !"
@@ -49,6 +49,8 @@ if [ $? -ne 0 ]
 	echo "*** Could not write to $IPTABLES_FILE !!"
 	exit 1
 fi
+
+chmod 775 $IPTABLES_FILE
 
 echo "*filter" >> $IPTABLES_FILE
 echo "# Empty current tables" >> $IPTABLES_FILE
@@ -85,6 +87,11 @@ echo "-A INPUT -p tcp --dport 8443 -j ACCEPT " >> $IPTABLES_FILE
 echo "-A OUTPUT -p tcp --syn -m limit --limit 100/min -j ACCEPT " >> $IPTABLES_FILE
 echo "-A OUTPUT -p tcp --syn -m limit --limit 1000/min -j LOG --log-prefix \"-Dropped: \" --log-level 4 " >> $IPTABLES_FILE
 echo "-A OUTPUT -p tcp --syn -j REJECT --reject-with tcp-reset " >> $IPTABLES_FILE
+echo "# Drop non SYN packages at tcp connection and all malformed packets" >> $IPTABLES_FILE
+echo "-A INPUT -p tcp ! --syn -m state --state NEW -j DROP" >> $IPTABLES_FILE
+echo "-A INPUT -p tcp --tcp-flags ALL NONE -j DROP" >> $IPTABLES_FILE
+echo "-A INPUT -p tcp --tcp-flags ALL ALL -j DROP" >> $IPTABLES_FILE
+echo "-A INPUT -f -j DROP" >> $IPTABLES_FILE
 echo "# By default forbid all input and output connections" >> $IPTABLES_FILE
 echo "-P INPUT DROP " >> $IPTABLES_FILE
 echo "-P FORWARD DROP " >> $IPTABLES_FILE
