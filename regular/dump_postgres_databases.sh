@@ -11,6 +11,7 @@
 #################################################################################
 
 
+SUCCESSFUL_DUMPS=0
 
 if [ -f $CONFIG_FILE ]
 	then
@@ -18,16 +19,27 @@ if [ -f $CONFIG_FILE ]
 	. $CONFIG_FILE
 fi
 
-ARRAY=$(echo $IN | tr ";" "," " ")
-
-
-for ELT in $ARRAY
+for ELT in $@
 do
+	
 	export PGDATABASE="$ELT"
-	FILENAME="$ELT_`date +"%Y%m%d`_`date +"%HH.MM.ss`.dump"
-
-	$PGDUMP_EXE -f $DUMP_DIRECTORY/$FILENAME 
+	FILENAME="$ELT.`date +"%Y%m%d"`.`date +"%H%M%s"`.dump"
+	
+	echo "Dumping $ELT in file $DUMP_DIRECTORY/$FILENAME..."
+	$PGDUMP_EXE --inserts > $DUMP_DIRECTORY/$FILENAME 
+	RETOUR=$?
+	
+	if [ $RETOUR -ne 0 ]
+	then
+		echo "*** ERROR at dumping $ELT"
+		echo "Continuing to next DB..."
+	else
+		echo "Successful dumping !!"
+		SUCCESSFUL_DUMPS=`expr $SUCCESSFUL_DUMPS + 1`
+	fi
 done
 
+
+echo "$SUCCESSFUL_DUMPS / $# successful dumps !!"
 
 exit 0

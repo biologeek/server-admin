@@ -13,9 +13,9 @@
 # File that contains configuration of databases to dump
 export CONFIG_FILE=dump.properties
 export PSQL_EXE=psql
-export PGDUMP_EXE=pg_dump --inserts
+PGDUMP_EXE=pg_dump
 export MYSQL_EXE=mysql
-
+export PGDUMP_EXE
 export DUMP_DIRECTORY=/home/spaulding/dumps
 
 if [ ! -d $DUMP_DIRECTORY ]
@@ -78,10 +78,15 @@ case $DBMS_TYPE in
 		echo "List of databases :"
 		$PSQL_EXE -w -c "\l"
 
-		read -p "Which databases to dump (separated by whitespaces) ? " DATABASES_TO_DUMP
+		if [ "$DATABASES_TO_DUMP" == "" ] 
+		then
+			read -p "Which databases to dump (separated by whitespaces) ? " DATABASES_TO_DUMP
+			echo "DATABASES_TO_DUMP=$DATABASES_TO_DUMP" >> $CONFIG_FILE
+		fi
 
-
-		dump_postgres_databases.sh 
+		./dump_postgres_databases.sh $DATABASES_TO_DUMP
+		
+		
 	;;
 	mysql)
 
