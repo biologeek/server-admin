@@ -11,12 +11,17 @@
 #################################################################################
 
 # File that contains configuration of databases to dump
-CONFIG_FILE=dump.properties
-PSQL_EXE=psql
-MYSQL_EXE=mysql
+export CONFIG_FILE=dump.properties
+export PSQL_EXE=psql
+export PGDUMP_EXE=pg_dump --inserts
+export MYSQL_EXE=mysql
 
-export CONFIG_FILE
+export DUMP_DIRECTORY=/home/spaulding/dumps
 
+if [ ! -d $DUMP_DIRECTORY ]
+	then 
+	mkdir -p $DUMP_DIRECTORY
+fi
 
 
 if [ -f $CONFIG_FILE ]
@@ -38,42 +43,58 @@ else
 	read -p "Host " SERVER
 	read -p "Port " PORT
 	read -p "Username " USERNAME
-	read -p "Password " PASSWORD
+	echo "Password "
+	read -s PASSWORD
 
 	echo "Which database system do you use ?" 
 	echo "- PostgreSQL (type postgres)" 
 	echo "- MySQL (mysql)"
-	read -p "? " DBMS_TYPE
-
-
-	echo "Testing connection..." 
-
-	case $DBMS_TYPE in 
-		postgres)
-			echo "DBMS_TYPE=postgres" >> $CONFIG_FILE
-			PGUSER=$USERNAME
-			PGHOST=$SERVER
-			PGPORT=$PORT
-			PGPASS=$PASSWORD
-			$PSQL_EXE -h $SERVER -p $PORT -U $USERNAME -w -c "SELECT now();"
-			RETOUR=$?
-			if [ $RETOUR -ne 0 ]
-				then 
-				echo "Error at connecting to PostgreSQL server..."
-				exit 1
-			fi
-		;;
-		mysql)
-
-			echo "Not yet implemented. Exiting..."
-			exit 0
-			echo "DBMS_TYPE=mysql" >> $CONFIG_FILE
-		;;
-		*)
-			echo "Wrong DBMS type, exiting..."
-			rm $CONFIG_FILE
-			exit 1
-		;;
-	esac
-
+	read -p "? " DBMS_TYPE 
 fi
+
+echo "Testing connection..."
+case $DBMS_TYPE in 
+	postgres)
+		echo "DBMS_TYPE=postgres" >> $CONFIG_FILE
+		export PGUSER=$USERNAME
+		export PGHOST=$SERVER
+		export PGPORT=$PORT
+		export PGPASSWORD=$PASSWORD
+
+		echo "USERNAME=$USERNAME" >> $CONFIG_FILE
+		echo "SERVER=$SERVER" >> $CONFIG_FILE
+		echo "PORT=$PORT" >> $CONFIG_FILE
+		echo "PASSWORD=$PASSWORD" >> $CONFIG_FILE
+
+		echo "Connecting to PostgreSQL with user : $PGUSER on server $PGHOST:$PGPORT"
+		$PSQL_EXE -w -c "SELECT now();" > /dev/null 2>&1
+		RETOUR=$?
+		if [ $RETOUR -ne 0 ]
+			then 
+			echo "Error at connecting to PostgreSQL server..."
+			exit 1
+		fi
+
+		echo "List of databases :"
+		$PSQL_EXE -w -c "\l"
+
+		read -p "Which databases to dump (separated by whitespaces) ? " DATABASES_TO_DUMP
+
+
+		dump_postgres_databases.sh 
+	;;
+	mysql)
+
+		echo "Not yet implemented. Exiting..."
+		exit 0
+		echo "DBMS_TYPE=mysql" >> $CONFIG_FILE
+	;;
+	*)
+		echo "Wrong DBMS type, exiting..."
+		rm $CONFIG_FILE
+		exit 1
+	;;
+esac
+
+
+exit 0
