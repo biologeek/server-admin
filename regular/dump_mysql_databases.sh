@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #################################################################################
-#	Shell script to dump databases to file										#
+#	Shell script to dump MySQL databases to file								#
 #-------------------------------------------------------------------------------#
 #	Version		|		Author		|					Comment					#
 #-------------------------------------------------------------------------------#
@@ -13,20 +13,20 @@
 
 SUCCESSFUL_DUMPS=0
 
-if [ -f $POSTGRES_CONFIG_FILE ]
+if [ -f $CONFIG_FILE ]
 	then
 	# Batch is already parametered. Sourcing config and starting dump
-	. $POSTGRES_CONFIG_FILE
+	. $CONFIG_FILE
 fi
 
 for ELT in $@
 do
 	
 	export PGDATABASE="$ELT"
-	FILENAME="$ELT.`date +"%Y%m%d"`.`date +"%H%M%s"`.dump"
+	FILENAME="$ELT.`date +"%Y%m%d"`.`date +"%H%M%s"`.dump"s
 	
 	echo "Dumping $ELT in file $DUMP_DIRECTORY/$FILENAME..."
-	$PGDUMP_EXE --inserts > $DUMP_DIRECTORY/$FILENAME 
+	$MYSQKDUMP_EXE --user=$USERNAME --host=$SERVER > $DUMP_DIRECTORY/$FILENAME 
 	RETOUR=$?
 	
 	if [ $RETOUR -ne 0 ]
