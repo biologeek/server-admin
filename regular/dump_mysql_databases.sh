@@ -22,11 +22,10 @@ fi
 for ELT in $@
 do
 	
-	export PGDATABASE="$ELT"
 	FILENAME="$ELT.`date +"%Y%m%d"`.`date +"%H%M%s"`.dump"s
 	
 	echo "Dumping $ELT in file $DUMP_DIRECTORY/$FILENAME..."
-	$MYSQKDUMP_EXE --user=$USERNAME --host=$SERVER > $DUMP_DIRECTORY/$FILENAME 
+	sudo -u postgres $MYSQLDUMP_EXE --user=$USERNAME --host=$SERVER --password=$PASSWORD --databases $ELT > $DUMP_DIRECTORY/$FILENAME 
 	RETOUR=$?
 	
 	if [ $RETOUR -ne 0 ]
