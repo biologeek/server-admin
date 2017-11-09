@@ -22,10 +22,10 @@ fi
 for ELT in $@
 do
 	
-	FILENAME="$ELT.`date +"%Y%m%d"`.`date +"%H%M%s"`.dump"s
+	FILENAME="$ELT.`date +"%Y%m%d"`.`date +"%H%M%s"`.dump"
 	
 	echo "Dumping $ELT in file $DUMP_DIRECTORY/$FILENAME..."
-	sudo -u postgres $MYSQLDUMP_EXE --user=$USERNAME --host=$SERVER --password=$PASSWORD --databases $ELT > $DUMP_DIRECTORY/$FILENAME 
+	sudo -u mysql $MYSQLDUMP_EXE --user=$USERNAME --host=$SERVER --password=$PASSWORD --databases $ELT > $DUMP_DIRECTORY/$FILENAME 
 	RETOUR=$?
 	
 	if [ $RETOUR -ne 0 ]
